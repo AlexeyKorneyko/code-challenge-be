@@ -4,13 +4,24 @@ Your assignment is to implement a feature for a fake financial institution using
 
 ### Brief
 
-Domain contains of accounts with predefined balances. 
+Domain contains of accounts with predefined balances.
+
 ```kotlin
+import java.math.BigDecimal
+
 data class Account(
     val accountId: String,
     val balance: BigDecimal,
 )
 ```
+And there is existing logic for account creation
+```kotlin
+interface AccountService {
+    fun create(account: Account)
+    fun findBy(accountId: String): Account
+}
+```
+
 You have to implement a feature that allows moving funds between these accounts.
 
 

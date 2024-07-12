@@ -3,13 +3,46 @@
  */
 package com.finmid
 
-class App {
-    val greeting: String
-        get() {
-            return "Hello World!"
-        }
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.output.MigrateResult
+import org.jetbrains.exposed.sql.Database
+import javax.sql.DataSource
+
+class App(
+    val accountService: AccountService,
+) {
+    constructor(database: Database) : this(
+        accountService =
+            AccountService(
+                accountRepository = AccountRepositoryImpl(database),
+            ),
+    )
+
+    init {
+        println("Welcome to finmid live coding challenge")
+    }
 }
 
 fun main() {
-    println(App().greeting)
+    val dataSource = hikariDataSource()
+    runDbMigrations(dataSource)
+    App(Database.connect(dataSource))
 }
+
+private fun hikariDataSource() =
+    HikariDataSource(
+        HikariConfig().apply {
+            jdbcUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/postgres"
+            username = System.getenv("DB_USER") ?: "postgres"
+            password = System.getenv("DB_PASSWORD") ?: ""
+        },
+    )
+
+fun runDbMigrations(datasource: DataSource): MigrateResult =
+    Flyway
+        .configure()
+        .dataSource(datasource)
+        .load()
+        .migrate()
